@@ -17,7 +17,7 @@
 //$remote_ip = gethostbyname('www.acopiadorescba.com');
 //if($_SERVER['REMOTE_ADDR'] == $remote_ip ) {
 
-define('ACOPIADORESUSERS_SECRET_KEY', 'kdHaO6A423Ad');
+define('ACOPIADORESUSERS_SECRET_KEY', '62Tgsd86ad54DSFiksd');
 
 function decrypt($string) {
    $key = ACOPIADORESUSERS_SECRET_KEY;
@@ -56,8 +56,8 @@ if ( empty($_REQUEST["p"]) || empty($_REQUEST["u"]) ){
 }
 		
 $userRequest = array(
-	'name' => $_REQUEST['u'],
-	'pass' => decrypt($_REQUEST['p'])
+	'name' => urldecode($_REQUEST['u']),
+	'pass' => decrypt(urldecode($_REQUEST['p']))
 );
 
 

@@ -1,0 +1,135 @@
+<?php
+
+/**
+ * @file
+ * Acopiadores Users Module
+ *
+ * Este módulo es para denegar el acceso a los usuarioas basados en ciertos
+ * valores de su user profile
+ * 
+ * A raiz de la instalacion de este modulo se puede acceder a la pantalla de logueo customizada desde
+ * ...../user?cid=ID_DEL_CENTRO
+ *  
+ */
+
+
+
+/**
+*	Son los que, sus usuarios, se loguean mediante un mecanismo de autenticacion centralizado. Haciendo que
+* 	su session este abierta ni bien abrieron sesion en la pagina de su centro
+*/
+function acopiadoresusers_get_centros_login_externo(){
+	return array(
+		144 => 'Sociedad de Acopiadores de Granos de la Provincia de Córdoba',
+	);
+}
+
+
+
+
+/**
+*	Son los que, sus usuarios, se loguean mediante una pantalla intermedia
+*/
+function acopiadoresusers_get_centros(){
+	return array(
+		146 => 'Sociedad de Cerealistas del Norte de la Pcia. de Buenos Aires',
+		144 => 'Sociedad de Acopiadores de Granos de la Provincia de Córdoba',
+	);
+}
+
+
+
+/**
+ * Implements hook_form_alter
+ */
+function acopiadoresusers_form_alter(&$form, $form_state, $form_id)
+{
+	// drupal_set_message(print_r("asas", TRUE));  // print array to messages
+
+	// validar solo cuando un usuario se está logueando. 
+	// Eso se da en los formularios "user_login" y "user_login_block" (este ultimo es el que paarece como bloque en el header
+	if (  $form_id ==  'user_login' || $form_id ==  'user_login_block' ) {
+		array_unshift($form['#validate'], 'acopiadoresusers_esDelCentro_validate');
+	}
+
+	// colocar CSS solo en la pagina de formulario de login cuando quiere ingresar un usuario desde un centro
+	if (  !empty($_GET['cid']) && $form_id ==  'user_login' ) {
+		drupal_add_css(drupal_get_path('module', 'acopiadoresusers') . "/styles/acopiadoresusers_style_for_cid.css");
+		drupal_add_css(drupal_get_path('module', 'acopiadoresusers') . "/styles/style_centro_id_".$_GET['cid'].".css");
+	}
+}
+
+
+
+
+/**
+* Pasado un ID de centro me dice si ese centro esta o no en el array de centros de usuarios bloqueados
+*/
+function acopiadoresusers_is_centro_login_externo($id_de_centro){
+	$centros = acopiadoresusers_get_centros_login_externo();
+	return empty($centros[$id_de_centro]);
+}
+
+/**
+* Validacion del usuario para el formulario de login donde se está registrando
+**/
+function acopiadoresusers_esDelCentro_validate($form, &$form_state) {
+	
+	$username = $form_state['values']['name'];
+	$profile = content_profile_load('profile', acopiadoresusers_get_id_del_usuario($username));
+	$cid = 0;
+	$getCid = empty( $_GET['cid'] ) ? 0 : $_GET['cid'] ;
+
+	// agarrar el ID del centro principal al cual pertenece el usuario
+	if (!empty($profile)) {
+		$cid = $profile->field_user_centroprincipal[0]['nid'];
+	}
+
+	// verificar solo para los usuarios cuyos centros estan configurados para acceso externo de usuarios
+	if ( _acopiadoresusers_in_map_centros($cid) ) {
+		// verificar la URL que se le haya pasado el parametro "cid" vía GET
+		if ( $getCid != $cid ) {			
+			form_set_error('name', 'Usted no puede ingresar a la intranet a través de esta página web. Debe hacerlo desde la página del Centro o Sociedad a la cual pertenece.');
+		}
+	}
+}
+
+
+
+/**
+* Verifica si el ID pasado existe en el array que mapea los centros
+* Aca estan los centros configurados para que sus usuarios hagan login externo desde su pagina customizada
+**/
+function _acopiadoresusers_in_map_centros( $cid ) {
+	// si vino en 0, retornar falso
+	if ( empty($cid) ) {
+		return false;
+	}
+	
+	// Aca van los centros que tienen sus usuarios bloqueados
+	// el map lleva el ID del centro y el nombre	
+	$acopiadoresusers_map_centros = acopiadoresusers_get_centros();
+
+	return empty($acopiadoresusers_map_centros[$cid]);
+}
+
+
+/**
+* Implements hook_help
+**/
+function acopiadoresusers_help($path, $arg) {
+	switch ($path) {
+	    // Main module help for the block module
+	    case 'admin/help#acopiadoresusers':
+		return "Este módulo es para que ciertos usuarios del sistema deban loguearse si o si desde la pagina customizada para los centros que fueron configurados";
+	}
+}
+
+
+function acopiadoresusers_get_id_del_usuario($username) {
+  $user = db_fetch_object(db_query("SELECT uid FROM {users} WHERE name = LOWER('%s')", $username));
+  return $user->uid;
+}
+
+
+

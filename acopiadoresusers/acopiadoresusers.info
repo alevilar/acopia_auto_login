@@ -1,0 +1,5 @@
+; $Id$
+name = Acopiadores Users
+description = Logeo de usuarios determinado por parametros de su perfil
+core = 6.x
+package = Users

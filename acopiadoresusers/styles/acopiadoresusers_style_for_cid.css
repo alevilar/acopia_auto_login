@@ -1,0 +1,11 @@
+#menu{
+	visibility:hidden !important;
+}
+
+body{
+	background-image: none !important;
+}
+
+#header, #footer, #menuvertical{
+	display: none;
+}

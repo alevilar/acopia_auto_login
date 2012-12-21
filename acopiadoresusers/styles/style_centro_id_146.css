@@ -1,0 +1,23 @@
+/*
+Diseño para el 'Centro de Acopiadores de Cereales de Tres Arroyos'
+*/
+
+
+#body-content{
+	padding-top: 150px;
+	padding-left: 300px;
+	background-color: transparent;
+	background: url(img/login_form_pergamino.jpg) no-repeat top right;
+	-webkit-border-radius: 20px;
+	border-radius: 20px;
+	-webkit-box-shadow: 0px 0px 10px 10px #ffff;
+	box-shadow: 0px 0px 10px 10px #ffff;
+}
+
+#nav{
+	background: transparent !important;
+}
+
+#contenedor_general{
+	background: transparent !important;
+}
